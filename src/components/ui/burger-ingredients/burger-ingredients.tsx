@@ -1,6 +1,6 @@
+// src/components/ui/burger-ingredients/burger-ingredients.tsx
 import React, { FC, memo } from 'react';
 import { Tab } from '@zlden/react-developer-burger-ui-components';
-
 import styles from './burger-ingredients.module.css';
 import { BurgerIngredientsUIProps } from './type';
 import { IngredientsCategory } from '@components';
@@ -17,6 +17,7 @@ export const BurgerIngredientsUI: FC<BurgerIngredientsUIProps> = memo(
     bunsRef,
     mainsRef,
     saucesRef,
+    counters, // передаем counters
     onTabClick
   }) => (
     <>
@@ -48,21 +49,26 @@ export const BurgerIngredientsUI: FC<BurgerIngredientsUIProps> = memo(
             titleRef={titleBunRef}
             ingredients={buns}
             ref={bunsRef}
+            counters={counters} // Передаем counters в IngredientsCategory
           />
           <IngredientsCategory
             title='Начинки'
             titleRef={titleMainRef}
             ingredients={mains}
             ref={mainsRef}
+            counters={counters} // Передаем counters в IngredientsCategory
           />
           <IngredientsCategory
             title='Соусы'
             titleRef={titleSaucesRef}
             ingredients={sauces}
             ref={saucesRef}
+            counters={counters} // Передаем counters в IngredientsCategory
           />
         </div>
       </section>
     </>
   )
 );
+
+export default BurgerIngredientsUI;

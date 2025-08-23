@@ -1,21 +1,73 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
 import { TIngredient } from '@utils-types';
+import { useAppSelector } from '../../services/store';
+import { getOrderByNumberApi } from '../../utils/burger-api';
+
+type TOrderData = {
+  createdAt: string;
+  ingredients: string[];
+  _id: string;
+  status: string;
+  name: string;
+  updatedAt: string;
+  number: number;
+};
 
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const { number } = useParams<{ number: string }>();
+  const orderNumber = number ? parseInt(number, 10) : NaN;
 
-  const ingredients: TIngredient[] = [];
+  // Ингредиенты уже грузятся в App → берём из стора
+  const ingredients = useAppSelector(
+    (s) => s.ingredients.items
+  ) as TIngredient[];
+
+  const [orderData, setOrderData] = useState<TOrderData | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Загружаем заказ по номеру (поддерживает и /feed/:number, и /profile/orders/:number)
+  useEffect(() => {
+    let ignore = false;
+
+    async function load() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        // В разных стартер-китах ответ /orders/:number отличается.
+        // Приведём к одному заказу:
+        const raw: any = await getOrderByNumberApi(orderNumber);
+        const extracted: TOrderData | null = Array.isArray(raw)
+          ? (raw[0] as TOrderData) ?? null
+          : raw?.orders
+            ? (raw.orders[0] as TOrderData) ?? null
+            : (raw as TOrderData);
+
+        if (!ignore) {
+          if (extracted) setOrderData(extracted);
+          else setError('Заказ не найден');
+        }
+      } catch (e: any) {
+        if (!ignore) setError(e?.message ?? 'Не удалось загрузить заказ');
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    if (!Number.isNaN(orderNumber)) {
+      load();
+    } else {
+      setIsLoading(false);
+      setError('Неверный номер заказа');
+    }
+
+    return () => {
+      ignore = true;
+    };
+  }, [orderNumber]);
 
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {
@@ -27,24 +79,25 @@ export const OrderInfo: FC = () => {
       [key: string]: TIngredient & { count: number };
     };
 
-    const ingredientsInfo = orderData.ingredients.reduce(
-      (acc: TIngredientsWithCount, item) => {
-        if (!acc[item]) {
-          const ingredient = ingredients.find((ing) => ing._id === item);
-          if (ingredient) {
-            acc[item] = {
-              ...ingredient,
-              count: 1
-            };
-          }
-        } else {
-          acc[item].count++;
-        }
+    // Подсчёт вхождений через обычный объект (без Map)
+    const counts: Record<string, number> = {};
+    for (const id of orderData.ingredients) {
+      counts[id] = (counts[id] ?? 0) + 1;
+    }
 
-        return acc;
-      },
-      {}
-    );
+    // Собираем объект с ингредиентами и корректируем булку (×2 если пришла один раз)
+    const ingredientsInfo: TIngredientsWithCount = {};
+    for (const [id, qty] of Object.entries(counts)) {
+      const ingredient = ingredients.find((ing) => ing._id === id);
+      if (!ingredient) continue;
+
+      const count = ingredient.type === 'bun' && qty === 1 ? 2 : qty;
+
+      ingredientsInfo[id] = {
+        ...ingredient,
+        count
+      };
+    }
 
     const total = Object.values(ingredientsInfo).reduce(
       (acc, item) => acc + item.price * item.count,
@@ -59,8 +112,19 @@ export const OrderInfo: FC = () => {
     };
   }, [orderData, ingredients]);
 
-  if (!orderInfo) {
+  if (isLoading || !orderInfo) {
+    // Показываем прелоадер либо если ещё грузится заказ/ингредиенты
     return <Preloader />;
+  }
+
+  if (error) {
+    return (
+      <div className='p-10'>
+        <p className='text text_type_main-default' style={{ color: 'red' }}>
+          {error}
+        </p>
+      </div>
+    );
   }
 
   return <OrderInfoUI orderInfo={orderInfo} />;

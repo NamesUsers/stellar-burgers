@@ -1,7 +1,8 @@
-import styles from './ingredients-category.module.css';
+// src/components/ui/ingredients-category/ingredients-category.tsx
 import { forwardRef } from 'react';
 import { TIngredientsCategoryUIProps } from './type';
 import { BurgerIngredient } from '@components';
+import styles from './ingredients-category.module.css';
 
 export const IngredientsCategoryUI = forwardRef<
   HTMLUListElement,
@@ -16,7 +17,7 @@ export const IngredientsCategoryUI = forwardRef<
         <BurgerIngredient
           ingredient={ingredient}
           key={ingredient._id}
-          count={ingredientsCounters[ingredient._id]}
+          count={ingredientsCounters[ingredient._id]} // Передаем счетчик
         />
       ))}
     </ul>

@@ -1,30 +1,30 @@
-import { FC, memo } from 'react';
+import { FC, useEffect } from 'react';
+import { Preloader } from '@ui';
+import { useAppDispatch, useAppSelector } from '../../../../services/store';
+import { fetchFeeds } from '../../../../services/slices/feedSlice';
+import { TOrder } from '@utils-types';
 
-import styles from './feed.module.css';
+// Локальный импорт UI компонента вместо циклического импорта
+import { FeedUI } from './feed-ui'; // Создайте этот файл
 
-import { FeedUIProps } from './type';
-import { OrdersList, FeedInfo } from '@components';
-import { RefreshButton } from '@zlden/react-developer-burger-ui-components';
+export const Feed: FC = () => {
+  const dispatch = useAppDispatch();
+  const orders: TOrder[] = useAppSelector((state) => state.feed.orders);
+  const isLoading = useAppSelector((state) => state.feed.isLoading);
+  const hasLoadedOnce = useAppSelector((state) => state.feed.hasLoadedOnce);
 
-export const FeedUI: FC<FeedUIProps> = memo(({ orders, handleGetFeeds }) => (
-  <main className={styles.containerMain}>
-    <div className={`${styles.titleBox} mt-10 mb-5`}>
-      <h1 className={`${styles.title} text text_type_main-large`}>
-        Лента заказов
-      </h1>
-      <RefreshButton
-        text='Обновить'
-        onClick={handleGetFeeds}
-        extraClass={'ml-30'}
-      />
-    </div>
-    <div className={styles.main}>
-      <div className={styles.columnOrders}>
-        <OrdersList orders={orders} />
-      </div>
-      <div className={styles.columnInfo}>
-        <FeedInfo />
-      </div>
-    </div>
-  </main>
-));
+  useEffect(() => {
+    if (!hasLoadedOnce) dispatch(fetchFeeds());
+    const interval = setInterval(() => {
+      dispatch(fetchFeeds());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, [dispatch, hasLoadedOnce]);
+
+  if (isLoading && !hasLoadedOnce) return <Preloader />;
+
+  return (
+    <FeedUI orders={orders} handleGetFeeds={() => dispatch(fetchFeeds())} />
+  );
+};

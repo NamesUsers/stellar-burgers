@@ -54,7 +54,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './public/index.html'
     }),
-    new Dotenv()
+    new Dotenv({
+      path: path.resolve(__dirname, '.env'),
+      systemvars: true
+    })
   ],
   resolve: {
     extensions: [
@@ -83,7 +86,8 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, './dist'),
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    publicPath: '/' // ⬅️ важно: чтобы скрипт подключался как /bundle.js, а не feed/bundle.js
   },
   devServer: {
     static: path.join(__dirname, './dist'),

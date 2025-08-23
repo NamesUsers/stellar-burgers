@@ -13,6 +13,21 @@
   list-style-type: none;
   margin: 0;
   padding: 0;
+  scrollbar-width: thin;
+  scrollbar-color: #6c3eb8 #2f2f37;
+}
+
+.elements::-webkit-scrollbar {
+  width: 10px;
+}
+.elements::-webkit-scrollbar-track {
+  background: #2f2f37;
+  border-radius: 8px;
+}
+.elements::-webkit-scrollbar-thumb {
+  background: #6c3eb8;
+  border-radius: 8px;
+  border: 2px solid #2f2f37;
 }
 
 .total {

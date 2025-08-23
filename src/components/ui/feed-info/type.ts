@@ -1,8 +1,8 @@
-export type FeedInfoUIProps = {
-  feed: any;
+export interface FeedInfoUIProps {
   readyOrders: number[];
   pendingOrders: number[];
-};
+  feed?: any; // Сделаем feed необязательным
+}
 
 export type HalfColumnProps = {
   orders: number[];
