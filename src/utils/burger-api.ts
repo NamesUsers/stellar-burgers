@@ -80,7 +80,19 @@ export const getIngredientsApi = (): Promise<TIngredient[]> =>
 
 type TFeedsResponse = TServerResponse<TOrdersData>;
 type TOrdersResponse = TServerResponse<{ orders: TOrder[] }>;
-type TNewOrderResponse = TServerResponse<{ name: string; order: TOrder }>;
+type TNewOrderResponse = TServerResponse<{ order: TOrder }>;
+
+// Отправка заказа с правильным порядковым номером
+export const orderBurgerApi = (ingredients: string[]) =>
+  fetchWithRefresh<TNewOrderResponse>(`${URL}/orders`, {
+    method: 'POST',
+    body: JSON.stringify({ ingredients })
+  }).then((data) => {
+    if (data.success && data.order && data.order.number) {
+      return { orderNumber: data.order.number }; // Возвращаем только порядковый номер
+    }
+    return Promise.reject(data);
+  });
 
 export const getFeedsApi = (): Promise<TOrdersData> =>
   fetch(`${URL}/orders/all`)
@@ -91,12 +103,6 @@ export const getOrdersApi = (): Promise<TOrder[]> =>
   fetchWithRefresh<TFeedsResponse>(`${URL}/orders`).then((data) =>
     data.success ? data.orders : Promise.reject(data)
   );
-
-export const orderBurgerApi = (ingredients: string[]) =>
-  fetchWithRefresh<TNewOrderResponse>(`${URL}/orders`, {
-    method: 'POST',
-    body: JSON.stringify({ ingredients })
-  }).then((data) => (data.success ? data : Promise.reject(data)));
 
 export const getOrderByNumberApi = (number: number) =>
   fetch(`${URL}/orders/${number}`, {
@@ -154,9 +160,11 @@ export const resetPasswordApi = (data: { password: string; token: string }) =>
 
 type TUserResponse = TServerResponse<{ user: TUser }>;
 
+// Получаем данные пользователя
 export const getUserApi = () =>
   fetchWithRefresh<TUserResponse>(`${URL}/auth/user`, { method: 'GET' });
 
+// Обновляем данные пользователя
 export const updateUserApi = (user: Partial<TRegisterData>) =>
   fetchWithRefresh<TUserResponse>(`${URL}/auth/user`, {
     method: 'PATCH',

@@ -1,6 +1,7 @@
 import { FC, useState, useRef, useEffect, useMemo } from 'react';
 import { useInView } from 'react-intersection-observer';
-import { useSelector, useDispatch } from 'react-redux';
+import { useAppSelector, useAppDispatch } from '../../services/store';
+
 import { BurgerIngredientsUI } from '@ui';
 import { selectIngredients } from '../../services/slices/ingredientsSlice';
 import { TIngredient } from '../../utils/types';
@@ -9,8 +10,8 @@ import { addIngredient, setBun } from '../../services/slices/constructorSlice';
 type TTab = 'bun' | 'main' | 'sauce';
 
 const BurgerIngredients: FC = () => {
-  const dispatch = useDispatch();
-  const items = useSelector(selectIngredients);
+  const dispatch = useAppDispatch();
+  const items = useAppSelector(selectIngredients);
   const [currentTab, setCurrentTab] = useState<TTab>('bun');
 
   const buns = items.filter((i: TIngredient) => i.type === 'bun');

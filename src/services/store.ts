@@ -1,9 +1,9 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import { configureStore, combineReducers } from '@reduxjs/toolkit'; // Добавить правильные импорты из Redux Toolkit
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 
 import authReducer from './slices/authSlice';
 import ingredientsReducer from './slices/ingredientsSlice';
-import burgerConstructorReducer from './slices/constructorSlice'; // Изменено имя импорта
+import burgerConstructorReducer from './slices/constructorSlice';
 import orderReducer from './slices/orderSlice';
 import feedReducer from './slices/feedSlice';
 import ordersHistoryReducer from './slices/ordersHistorySlice';
@@ -12,7 +12,7 @@ import ordersHistoryReducer from './slices/ordersHistorySlice';
 const rootReducer = combineReducers({
   auth: authReducer,
   ingredients: ingredientsReducer,
-  burgerConstructor: burgerConstructorReducer, // Ключ должен совпадать с именем в слайсе
+  burgerConstructor: burgerConstructorReducer,
   order: orderReducer,
   feed: feedReducer,
   ordersHistory: ordersHistoryReducer
@@ -21,10 +21,9 @@ const rootReducer = combineReducers({
 export const store = configureStore({
   reducer: rootReducer,
   devTools: process.env.NODE_ENV !== 'production',
-  // Добавляем middleware по умолчанию
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: false // Отключаем, если не нужна строгая проверка сериализуемости
+      serializableCheck: false // Отключаем проверку сериализуемости
     })
 });
 
@@ -32,5 +31,5 @@ export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;
 
 // Типизированные хуки для использования в компонентах
-export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
-export const useAppSelector = useSelector.withTypes<RootState>();
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+export const useAppDispatch = () => useDispatch<AppDispatch>();

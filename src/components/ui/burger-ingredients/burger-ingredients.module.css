@@ -1,24 +1,33 @@
+/* src/components/ui/burger-ingredients/burger-ingredients.module.css */
+
+/* Контейнер для ингредиентов */
 .burger_ingredients {
   font-family: 'Jet Brains Mono';
   color: #f2f2f3;
   max-width: 600px;
-
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 120px); /* Убираем место под шапку */
+  overflow-y: auto; /* Прокрутка только внутри контейнера */
 }
 
+/* Убираем маргин у всех параграфов */
 p {
   margin: 0;
 }
 
+/* Стили для табов */
 .tab {
   width: 120px;
 }
 
+/* Контейнер для прокрутки ингредиентов */
 .content {
-  overflow-y: scroll;
+  overflow-y: auto; /* Прокрутка ингредиентов */
+  flex-grow: 1; /* Разрешаем растягиваться, чтобы занимать оставшееся пространство */
 }
 
+/* Стили для меню (табы) */
 .menu {
   display: flex;
   list-style-type: none;
@@ -27,6 +36,7 @@ p {
   text-align: center;
 }
 
+/* Стили для категорий */
 .categories {
   font-style: normal;
   font-weight: bold;

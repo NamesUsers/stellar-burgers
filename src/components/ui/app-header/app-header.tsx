@@ -1,3 +1,4 @@
+// src/components/ui/app-header/app-header.tsx
 import React, { FC } from 'react';
 import { NavLink, Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
@@ -13,18 +14,18 @@ import {
 export const AppHeaderUI: FC<TAppHeaderUIProps> = ({ userName }) => {
   const location = useLocation();
 
-  // если открыта модалка через background, активную вкладку подсвечиваем
-  // по базовому (фонового) маршруту
   const background = (location.state as any)?.background;
   const pathname = (background || location).pathname as string;
 
   const isConstructorActive =
     pathname === '/' || pathname.startsWith('/ingredients');
-  const isFeedActive = pathname.startsWith('/feed'); // включает /feed и /feed/:number
-  const isProfileActive = pathname.startsWith('/profile'); // включает /profile и /profile/orders/:number
+  const isFeedActive = pathname.startsWith('/feed');
+  const isProfileActive = pathname.startsWith('/profile');
 
   return (
     <header className={styles.header}>
+      {' '}
+      {/* Шапка будет фиксированной */}
       <nav className={clsx(styles.menu, 'p-4')}>
         <div className={styles.menu_part_left}>
           <NavLink to='/' end className={styles.link}>

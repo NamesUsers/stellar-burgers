@@ -1,6 +1,7 @@
 // src/components/ingredients-category/ingredients-category.tsx
 import { forwardRef, useMemo } from 'react';
-import { useSelector } from 'react-redux';
+import { useAppSelector } from '../../services/store';
+
 import { TIngredientsCategoryProps } from './type';
 import { TIngredient } from '@utils-types';
 import { IngredientsCategoryUI } from '../ui/ingredients-category';
@@ -14,8 +15,8 @@ export const IngredientsCategory = forwardRef<
   TIngredientsCategoryProps
 >(({ title, titleRef, ingredients }, ref) => {
   // Получаем актуальные данные из стора
-  const bun = useSelector(selectBun); // Берем булку из стора
-  const constructorIngredients = useSelector(selectConstructorIngredients); // Берем остальные ингредиенты
+  const bun = useAppSelector(selectBun); // Берем булку из стора
+  const constructorIngredients = useAppSelector(selectConstructorIngredients); // Берем остальные ингредиенты
 
   // Логика для подсчета ингредиентов
   const ingredientsCounters = useMemo(() => {

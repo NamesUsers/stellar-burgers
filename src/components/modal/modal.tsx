@@ -1,6 +1,8 @@
+// src/components/modal/modal.tsx
 import { FC, PropsWithChildren, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import styles from '../ui/modal/modal.module.css'; // путь к твоему CSS
+import styles from '../ui/modal/modal.module.css'; // Путь к твоему CSS
+import { useLocation, useNavigate } from 'react-router-dom';
 
 type Props = PropsWithChildren<{
   title?: string;
@@ -8,10 +10,16 @@ type Props = PropsWithChildren<{
 }>;
 
 export const Modal: FC<Props> = ({ title, onClose, children }) => {
-  // контейнер портала уже создан в index.tsx
   const modalRoot = document.getElementById('modal-root') as HTMLElement;
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Состояние для восстановления фона (previous page) при перезагрузке страницы
+  const backgroundLocation = location.state?.backgroundLocation;
+
   useEffect(() => {
+    // Закрытие модального окна по клавише Escape
     const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     document.addEventListener('keydown', onEsc);
     return () => document.removeEventListener('keydown', onEsc);
@@ -19,6 +27,12 @@ export const Modal: FC<Props> = ({ title, onClose, children }) => {
 
   const onBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
+  };
+
+  const handleClose = () => {
+    // После закрытия попапа, возвращаемся на фоновую страницу
+    navigate(backgroundLocation || '/'); // Если фоновая страница существует, возвращаемся на неё
+    onClose();
   };
 
   return ReactDOM.createPortal(
@@ -36,7 +50,7 @@ export const Modal: FC<Props> = ({ title, onClose, children }) => {
           {title && <h3 className='text text_type_main-large'>{title}</h3>}
           <button
             className={styles.button}
-            onClick={onClose}
+            onClick={handleClose}
             aria-label='close'
           >
             ×
