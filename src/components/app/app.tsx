@@ -1,5 +1,4 @@
-// src/components/app/app.tsx
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 import { AppHeader } from '../app-header/app-header';
@@ -37,31 +36,99 @@ const App: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    dispatch(checkAuth());
-    dispatch(fetchIngredients());
-  }, []); // намеренно без зависимостей: единожды при монтировании
+  const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
+  const [orderModalNumber, setOrderModalNumber] = useState<string | null>(null);
 
-  // Проверка получения ингредиентов
+  // Получаем состояние авторизации
+  const { isAuthChecked, user } = useAppSelector((s) => s.auth);
   const isLoading = useAppSelector(selectIngredientsLoading);
   const error = useAppSelector(selectIngredientsError);
   const ingredients = useAppSelector(selectIngredients);
+
+  useEffect(() => {
+    // Просто вызываем checkAuth - он сам установит флаги
+    dispatch(checkAuth());
+    dispatch(fetchIngredients());
+
+    // Восстанавливаем состояние модального окна из localStorage
+    const savedModalState = localStorage.getItem('orderModalOpen');
+    const savedOrderNumber = localStorage.getItem('lastOpenedOrder');
+
+    if (savedModalState === 'true' && savedOrderNumber) {
+      setOrderModalNumber(savedOrderNumber);
+    }
+  }, [dispatch]);
+
+  // Восстанавливаем модальное окно после проверки авторизации
+  useEffect(() => {
+    if (isAuthChecked && orderModalNumber) {
+      setIsOrderModalOpen(true);
+
+      // Если пользователь авторизован и мы не на странице заказов, навигируем к ней
+      if (user && !location.pathname.includes('/profile/orders')) {
+        navigate(`/profile/orders/${orderModalNumber}`, {
+          state: { background: location },
+          replace: true
+        });
+      }
+    }
+  }, [isAuthChecked, orderModalNumber, user, location, navigate]);
+
+  useEffect(() => {
+    // Сохраняем состояние модального окна в localStorage
+    if (isOrderModalOpen && orderModalNumber) {
+      localStorage.setItem('orderModalOpen', 'true');
+      localStorage.setItem('lastOpenedOrder', orderModalNumber);
+    } else {
+      localStorage.removeItem('orderModalOpen');
+      localStorage.removeItem('lastOpenedOrder');
+    }
+  }, [isOrderModalOpen, orderModalNumber]);
+
+  const openOrderModal = (orderNumber: string) => {
+    setIsOrderModalOpen(true);
+    setOrderModalNumber(orderNumber);
+    // Сохраняем текущий URL как background
+    navigate(`/profile/orders/${orderNumber}`, {
+      state: { background: location }
+    });
+  };
+
+  const closeOrderModal = () => {
+    setIsOrderModalOpen(false);
+    setOrderModalNumber(null);
+    navigate(-1);
+  };
+
+  const closeModal = () => {
+    navigate(-1);
+  };
 
   // background для модалок
   const state = location.state as TLocationState | undefined;
   const background = state?.background;
 
-  const closeModal = () => navigate(-1);
+  // Показываем общий лоадер пока не прошла проверка авторизации
+  if (!isAuthChecked) {
+    return (
+      <div>
+        <AppHeader />
+        <div className='p-10'>
+          <p className='text text_type_main-default'>Загрузка...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
       <AppHeader />
       {isLoading ? (
-        <div className='p-10' key='1'>
+        <div className='p-10'>
           <p className='text text_type_main-default'>Загрузка ингредиентов…</p>
         </div>
       ) : error ? (
-        <main className='p-10' key='2'>
+        <main className='p-10'>
           <h2 className='text text_type_main-large mb-6'>Ошибка загрузки</h2>
           <p className='text text_type_main-default' style={{ color: '#f33' }}>
             Не удалось получить список ингредиентов: {error}
@@ -122,7 +189,7 @@ const App: FC = () => {
               path='/profile/orders'
               element={
                 <ProtectedRoute>
-                  <ProfileOrders />
+                  <ProfileOrders onOrderClick={openOrderModal} />
                 </ProtectedRoute>
               }
             />
@@ -173,6 +240,13 @@ const App: FC = () => {
                 }
               />
             </Routes>
+          )}
+
+          {/* Модальное окно для заказов (сохраняется при обновлении) */}
+          {isOrderModalOpen && orderModalNumber && (
+            <Modal title='Детали заказа' onClose={closeOrderModal}>
+              <OrderInfo orderNumber={orderModalNumber} />
+            </Modal>
           )}
         </>
       ) : (

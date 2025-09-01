@@ -10,21 +10,23 @@ type Props = {
 
 const ProtectedRoute: FC<Props> = ({ onlyUnAuth = false, children }) => {
   const location = useLocation();
-  const { user, isAuthChecked, loading } = useAppSelector((s) => s.auth);
+  const { user, isAuthChecked } = useAppSelector((s) => s.auth);
 
-  // пока идёт начальная проверка – показываем прелоадер
-  if (!isAuthChecked || loading) {
+  // Пока проверка авторизации не завершена - показываем прелоадер
+  if (!isAuthChecked) {
     return <Preloader />;
   }
 
+  // Для гостевых маршрутов (onlyUnAuth = true)
   if (onlyUnAuth && user) {
-    // если авторизован, перенаправляем на страницу, с которой он пытался попасть
+    // Пользователь авторизован, но пытается попасть на гостевой маршрут
     const from = (location.state as any)?.from?.pathname || '/';
     return <Navigate to={from} replace />;
   }
 
+  // Для защищенных маршрутов (onlyUnAuth = false)
   if (!onlyUnAuth && !user) {
-    // если не авторизован, перенаправляем на страницу логина
+    // Пользователь не авторизован - перенаправляем на логин, сохраняя откуда пришел
     return <Navigate to='/login' replace state={{ from: location }} />;
   }
 

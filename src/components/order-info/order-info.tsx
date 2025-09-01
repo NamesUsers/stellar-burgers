@@ -16,9 +16,20 @@ type TOrderData = {
   number: number;
 };
 
-export const OrderInfo: FC = () => {
+interface OrderInfoProps {
+  orderNumber?: string;
+}
+
+export const OrderInfo: FC<OrderInfoProps> = ({
+  orderNumber: propOrderNumber
+}) => {
   const { number } = useParams<{ number: string }>();
-  const orderNumber = number ? parseInt(number, 10) : NaN;
+  // Используем переданный номер заказа или берем из URL
+  const orderNumber = propOrderNumber
+    ? parseInt(propOrderNumber, 10)
+    : number
+      ? parseInt(number, 10)
+      : NaN;
 
   // Ингредиенты уже грузятся в App → берём из стора
   const ingredients = useAppSelector(
@@ -29,12 +40,24 @@ export const OrderInfo: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Загружаем заказ по номеру (поддерживает и /feed/:number, и /profile/orders/:number)
+  // Кэширование загруженных заказов
+  const [ordersCache, setOrdersCache] = useState<Record<number, TOrderData>>(
+    {}
+  );
+
+  // Загружаем заказ по номеру
   useEffect(() => {
     let ignore = false;
 
     async function load() {
       try {
+        // Проверяем кэш
+        if (ordersCache[orderNumber]) {
+          setOrderData(ordersCache[orderNumber]);
+          setIsLoading(false);
+          return;
+        }
+
         setIsLoading(true);
         setError(null);
         // В разных стартер-китах ответ /orders/:number отличается.
@@ -47,8 +70,13 @@ export const OrderInfo: FC = () => {
             : (raw as TOrderData);
 
         if (!ignore) {
-          if (extracted) setOrderData(extracted);
-          else setError('Заказ не найден');
+          if (extracted) {
+            setOrderData(extracted);
+            // Сохраняем в кэш
+            setOrdersCache((prev) => ({ ...prev, [orderNumber]: extracted }));
+          } else {
+            setError('Заказ не найден');
+          }
         }
       } catch (e: any) {
         if (!ignore) setError(e?.message ?? 'Не удалось загрузить заказ');
@@ -67,7 +95,7 @@ export const OrderInfo: FC = () => {
     return () => {
       ignore = true;
     };
-  }, [orderNumber]);
+  }, [orderNumber, ordersCache]);
 
   /* Готовим данные для отображения */
   const orderInfo = useMemo(() => {

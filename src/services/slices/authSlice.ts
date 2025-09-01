@@ -1,4 +1,9 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import {
+  createSlice,
+  createAsyncThunk,
+  createAction,
+  PayloadAction
+} from '@reduxjs/toolkit';
 import {
   getUserApi,
   loginApi,
@@ -24,20 +29,35 @@ const initialState: AuthState = {
   error: null
 };
 
-// --- checkAuth: не звоним на /auth/user, если нет токенов
+// Синхронное действие для установки флага проверки
+export const setIsAuthChecked = createAction<boolean>('auth/setIsAuthChecked');
+
+// Проверка существования токенов
+const isTokenExists = () => {
+  const access = getCookie('accessToken');
+  const refresh = localStorage.getItem('refreshToken');
+  return !!(access || refresh);
+};
+
+// Упрощенный checkAuth по примеру наставника
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
-  async (_, { rejectWithValue }) => {
-    const access = getCookie('accessToken');
-    const refresh = localStorage.getItem('refreshToken');
-    if (!access && !refresh) {
-      return rejectWithValue('No tokens');
-    }
-    try {
-      const resp = await getUserApi();
-      return resp.user as { name: string; email: string };
-    } catch (e: any) {
-      return rejectWithValue(e?.message || 'Auth check failed');
+  async (_, { dispatch }) => {
+    if (isTokenExists()) {
+      try {
+        const resp = await getUserApi();
+        dispatch(setUser(resp.user));
+      } catch (error) {
+        // Игнорируем ошибку - просто очищаем пользователя
+        dispatch(setUser(null));
+        // Очищаем невалидные токены
+        setCookie('accessToken', '', { expires: -1 } as any);
+        localStorage.removeItem('refreshToken');
+      } finally {
+        dispatch(setIsAuthChecked(true));
+      }
+    } else {
+      dispatch(setIsAuthChecked(true));
     }
   }
 );
@@ -50,8 +70,7 @@ export const login = createAsyncThunk(
   ) => {
     try {
       const resp = await loginApi({ email, password });
-      // сохраняем токены!
-      setCookie('accessToken', resp.accessToken); // "Bearer ..."
+      setCookie('accessToken', resp.accessToken);
       localStorage.setItem('refreshToken', resp.refreshToken);
       return resp.user as { name: string; email: string };
     } catch (e: any) {
@@ -72,8 +91,7 @@ export const register = createAsyncThunk(
   ) => {
     try {
       const resp = await registerApi({ name, email, password });
-      // сохраняем токены!
-      setCookie('accessToken', resp.accessToken); // "Bearer ..."
+      setCookie('accessToken', resp.accessToken);
       localStorage.setItem('refreshToken', resp.refreshToken);
       return resp.user as { name: string; email: string };
     } catch (e: any) {
@@ -102,7 +120,6 @@ export const logout = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       await logoutApi();
-      // чистим токены!
       setCookie('accessToken', '', { expires: -1 } as any);
       localStorage.removeItem('refreshToken');
       return true;
@@ -116,31 +133,21 @@ const slice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    authChecked(state) {
-      state.isAuthChecked = true;
-      state.error = null;
-    },
     setUser(state, action: PayloadAction<TUser>) {
       state.user = action.payload;
+      state.error = null;
+    },
+    clearError(state) {
+      state.error = null;
     }
   },
   extraReducers: (builder) => {
     builder
-      .addCase(checkAuth.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      // checkAuth - используем только finally через setIsAuthChecked
+      .addCase(setIsAuthChecked, (state, action) => {
+        state.isAuthChecked = action.payload;
       })
-      .addCase(checkAuth.fulfilled, (state, action) => {
-        state.loading = false;
-        state.user = action.payload;
-        state.isAuthChecked = true;
-      })
-      .addCase(checkAuth.rejected, (state, action) => {
-        state.loading = false;
-        state.user = null;
-        state.isAuthChecked = true; // завершили проверку, даже если 401/No tokens
-        state.error = (action.payload as string) || 'Auth check failed';
-      })
+      // login
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -152,8 +159,9 @@ const slice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || 'Login failed';
+        state.error = action.payload as string;
       })
+      // register
       .addCase(register.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -165,8 +173,9 @@ const slice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || 'Register failed';
+        state.error = action.payload as string;
       })
+      // updateUser
       .addCase(updateUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -177,14 +186,18 @@ const slice = createSlice({
       })
       .addCase(updateUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = (action.payload as string) || 'Update failed';
+        state.error = action.payload as string;
       })
+      // logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isAuthChecked = true;
+      })
+      .addCase(logout.rejected, (state, action) => {
+        state.error = action.payload as string;
       });
   }
 });
 
-export const { authChecked, setUser } = slice.actions;
+export const { setUser, clearError } = slice.actions;
 export default slice.reducer;
