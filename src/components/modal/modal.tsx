@@ -1,27 +1,64 @@
-import { FC, memo, useEffect } from 'react';
+// src/components/modal/modal.tsx
+import { FC, PropsWithChildren, useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import styles from '../ui/modal/modal.module.css'; // Путь к твоему CSS
+import { useLocation, useNavigate } from 'react-router-dom';
 
-import { TModalProps } from './type';
-import { ModalUI } from '@ui';
+type Props = PropsWithChildren<{
+  title?: string;
+  onClose: () => void;
+}>;
 
-const modalRoot = document.getElementById('modals');
+export const Modal: FC<Props> = ({ title, onClose, children }) => {
+  const modalRoot = document.getElementById('modal-root') as HTMLElement;
 
-export const Modal: FC<TModalProps> = memo(({ title, onClose, children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Состояние для восстановления фона (previous page) при перезагрузке страницы
+  const backgroundLocation = location.state?.backgroundLocation;
+
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      e.key === 'Escape' && onClose();
-    };
-
-    document.addEventListener('keydown', handleEsc);
-    return () => {
-      document.removeEventListener('keydown', handleEsc);
-    };
+    // Закрытие модального окна по клавише Escape
+    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    document.addEventListener('keydown', onEsc);
+    return () => document.removeEventListener('keydown', onEsc);
   }, [onClose]);
 
+  const onBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) onClose();
+  };
+
+  const handleClose = () => {
+    // После закрытия попапа, возвращаемся на фоновую страницу
+    navigate(backgroundLocation || '/'); // Если фоновая страница существует, возвращаемся на неё
+    onClose();
+  };
+
   return ReactDOM.createPortal(
-    <ModalUI title={title} onClose={onClose}>
-      {children}
-    </ModalUI>,
-    modalRoot as HTMLDivElement
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,.6)',
+        zIndex: 9998
+      }}
+      onMouseDown={onBackdropClick}
+    >
+      <div className={styles.modal} onMouseDown={(e) => e.stopPropagation()}>
+        <header className={styles.header}>
+          {title && <h3 className='text text_type_main-large'>{title}</h3>}
+          <button
+            className={styles.button}
+            onClick={handleClose}
+            aria-label='close'
+          >
+            ×
+          </button>
+        </header>
+        <div className={styles.content}>{children}</div>
+      </div>
+    </div>,
+    modalRoot
   );
-});
+};
