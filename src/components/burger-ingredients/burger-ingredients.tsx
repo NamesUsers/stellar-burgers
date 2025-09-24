@@ -88,10 +88,10 @@ const BurgerIngredients: FC = () => {
       bunsRef={bunsRef}
       mainsRef={mainsRef}
       saucesRef={saucesRef}
-      counters={counters} // Передаем счётчики ингредиентов в UI
+      counters={counters}
       onTabClick={onTabClick}
-      onBunClick={onBunClick} // Обработчик клика по булке
-      onIngredientClick={onIngredientClick} // Обработчик клика по ингредиенту
+      onBunClick={onBunClick}
+      onIngredientClick={onIngredientClick}
     />
   );
 };
