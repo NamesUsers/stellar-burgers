@@ -1,7 +1,7 @@
-// ingredients.test.js
 import {
   ingredientsSlice,
-  fetchIngredients
+  fetchIngredients,
+  initialState
 } from '../services/slices/ingredientsSlice';
 
 // Мокаем API
@@ -18,11 +18,8 @@ describe('ingredientsSlice', () => {
   });
 
   it('должен устанавливать isLoading в true при экшене Request', () => {
-    const initialState = { items: [], isLoading: false, error: null };
-
-    // Используем правильный путь к редьюсеру
     const newState = ingredientsSlice.reducer(
-      initialState,
+      initialState, // ← используем импортированный initialState
       fetchIngredients.pending()
     );
 
@@ -31,11 +28,10 @@ describe('ingredientsSlice', () => {
   });
 
   it('должен сохранять ингредиенты и устанавливать isLoading в false при экшене Success', () => {
-    const initialState = { items: [], isLoading: true, error: null };
     const ingredientsData = [{ name: 'Lettuce' }, { name: 'Tomato' }];
 
     const newState = ingredientsSlice.reducer(
-      initialState,
+      initialState, // ← используем импортированный initialState
       fetchIngredients.fulfilled(ingredientsData)
     );
 
@@ -45,11 +41,10 @@ describe('ingredientsSlice', () => {
   });
 
   it('должен сохранять ошибку и устанавливать isLoading в false при экшене Failed', () => {
-    const initialState = { items: [], isLoading: true, error: null };
     const error = new Error('Не удалось загрузить ингредиенты');
 
     const newState = ingredientsSlice.reducer(
-      initialState,
+      initialState, // ← используем импортированный initialState
       fetchIngredients.rejected(error)
     );
 

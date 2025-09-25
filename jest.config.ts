@@ -1,4 +1,3 @@
-// jest.config.ts
 import type { Config } from 'jest';
 
 const config: Config = {
@@ -9,15 +8,13 @@ const config: Config = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleDirectories: ['node_modules', 'src'],
   moduleNameMapper: {
-    '^../../utils/burger-api$': '<rootDir>/src/__mocks__/utils/burger-api.ts'
+    '^../../utils/burger-api$': '<rootDir>/src/__mocks__/utils/burger-api.ts',
+    '^../../utils/cookie$': '<rootDir>/src/__mocks__/utils/cookie.js'
   },
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$)|(@reduxjs/toolkit|react-redux|axios|@babel/runtime))'
   ],
-  // Уберите setupFilesAfterEnv или установите пустой массив
   setupFilesAfterEnv: []
-  // Или используйте простой setup файл
-  // setupFilesAfterEnv: ['<rootDir>/src/simple-setup.ts'],
 };
 
 export default config;

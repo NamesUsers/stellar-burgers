@@ -1,17 +1,14 @@
-// burgerConstructor.test.js
-// Этот тест не использует API, поэтому мок не обязателен
 jest.mock('../../utils/burger-api', () => ({
   getIngredientsApi: jest.fn(),
   BURGER_API_URL: 'https://norma.nomoreparties.space/api'
 }));
 
-import { burgerConstructorSlice } from '../services/slices/constructorSlice';
+import { burgerConstructorSlice, initialState } from '../services/slices/constructorSlice';
 const { addIngredient, removeIngredient, moveIngredient } =
   burgerConstructorSlice.actions;
 
 describe('burgerConstructorSlice', () => {
   it('должен добавлять ингредиент с уникальным id', () => {
-    const initialState = { bun: null, ingredients: [] };
     const ingredient = { type: 'ingredient', name: 'Lettuce' };
 
     const newState = burgerConstructorSlice.reducer(
@@ -26,7 +23,8 @@ describe('burgerConstructorSlice', () => {
   });
 
   it('должен удалять ингредиент по id', () => {
-    const initialState = {
+    // Создаем тестовое состояние с ингредиентами
+    const testState = {
       bun: null,
       ingredients: [
         { id: '1', name: 'Lettuce' },
@@ -35,7 +33,7 @@ describe('burgerConstructorSlice', () => {
     };
 
     const newState = burgerConstructorSlice.reducer(
-      initialState,
+      testState,
       removeIngredient('1')
     );
 
@@ -45,7 +43,7 @@ describe('burgerConstructorSlice', () => {
   });
 
   it('должен менять порядок ингредиентов', () => {
-    const initialState = {
+    const testState = {
       bun: null,
       ingredients: [
         { id: '1', name: 'Lettuce' },
@@ -55,7 +53,7 @@ describe('burgerConstructorSlice', () => {
     };
 
     const newState = burgerConstructorSlice.reducer(
-      initialState,
+      testState,
       moveIngredient({ dragIndex: 0, hoverIndex: 1 })
     );
 
@@ -64,16 +62,9 @@ describe('burgerConstructorSlice', () => {
     expect(newState.ingredients[2].name).toBe('Cheese');
   });
 
-  // Убираем проблемный тест или исправляем его
   it('должен корректно обрабатывать пустой массив при перемещении', () => {
-    const initialState = {
-      bun: null,
-      ingredients: []
-    };
-
-    // Для пустого массива перемещение не должно ничего менять
     const newState = burgerConstructorSlice.reducer(
-      initialState,
+      initialState, // ← используем импортированный initialState (уже пустой)
       moveIngredient({ dragIndex: 0, hoverIndex: 1 })
     );
 
