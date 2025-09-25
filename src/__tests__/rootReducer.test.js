@@ -20,7 +20,7 @@ import { rootReducer } from '../services/store'; // или правильный 
 describe('rootReducer', () => {
   it('должен инициализировать состояние с правильной структурой', () => {
     // Используем пустое действие для инициализации
-    const initialState = rootReducer(undefined, { type: '@@INIT' });
+    const initialState = rootReducer(undefined, { type: 'UNKNOWN_ACTION' });
 
     expect(initialState).toHaveProperty('auth');
     expect(initialState).toHaveProperty('ingredients');
