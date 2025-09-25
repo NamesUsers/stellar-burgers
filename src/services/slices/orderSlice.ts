@@ -9,7 +9,7 @@ type OrderState = {
   user: TUser | null; // Добавляем данные о пользователе
 };
 
-const initialState: OrderState = {
+export const initialState: OrderState = {
   isLoading: false,
   error: null,
   orderNumber: null,

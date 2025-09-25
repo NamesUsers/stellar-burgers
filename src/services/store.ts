@@ -9,7 +9,7 @@ import feedReducer from './slices/feedSlice';
 import ordersHistoryReducer from './slices/ordersHistorySlice';
 
 // Собираем корневой редьюсер с помощью combineReducers
-const rootReducer = combineReducers({
+export const rootReducer = combineReducers({
   auth: authReducer,
   ingredients: ingredientsReducer,
   burgerConstructor: burgerConstructorReducer,

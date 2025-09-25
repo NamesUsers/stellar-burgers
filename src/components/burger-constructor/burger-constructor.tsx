@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '../../services/store';
 import {
   clearConstructor,
   removeIngredient
-} from '../../services/slices/constructorSlice'; // Добавляем экшен removeIngredient
+} from '../../services/slices/constructorSlice';
 import { createOrder, clearOrder } from '../../services/slices/orderSlice';
 import { fetchFeeds } from '../../services/slices/feedSlice';
 

@@ -1,4 +1,3 @@
-// src/components/ui/burger-ingredients/burger-ingredients.tsx
 import React, { FC, memo } from 'react';
 import { Tab } from '@zlden/react-developer-burger-ui-components';
 import styles from './burger-ingredients.module.css';
@@ -21,16 +20,25 @@ export const BurgerIngredientsUI: FC<BurgerIngredientsUIProps> = memo(
     onTabClick
   }) => (
     <>
-      <section className={styles.burger_ingredients}>
-        <nav>
-          <ul className={styles.menu}>
-            <Tab value='bun' active={currentTab === 'bun'} onClick={onTabClick}>
+      <section
+        className={styles.burger_ingredients}
+        data-cy='burger-ingredients'
+      >
+        <nav data-cy='ingredients-nav'>
+          <ul className={styles.menu} data-cy='ingredients-menu'>
+            <Tab
+              value='bun'
+              active={currentTab === 'bun'}
+              onClick={onTabClick}
+              data-cy='tab-buns'
+            >
               Булки
             </Tab>
             <Tab
               value='main'
               active={currentTab === 'main'}
               onClick={onTabClick}
+              data-cy='tab-mains'
             >
               Начинки
             </Tab>
@@ -38,32 +46,37 @@ export const BurgerIngredientsUI: FC<BurgerIngredientsUIProps> = memo(
               value='sauce'
               active={currentTab === 'sauce'}
               onClick={onTabClick}
+              data-cy='tab-sauces'
             >
               Соусы
             </Tab>
           </ul>
         </nav>
-        <div className={styles.content}>
+
+        <div className={styles.content} data-cy='ingredients-content'>
           <IngredientsCategory
             title='Булки'
             titleRef={titleBunRef}
             ingredients={buns}
             ref={bunsRef}
-            counters={counters} // Передаем counters в IngredientsCategory
+            counters={counters}
+            data-cy='ingredients-buns' // Добавлен атрибут для булок
           />
           <IngredientsCategory
             title='Начинки'
             titleRef={titleMainRef}
             ingredients={mains}
             ref={mainsRef}
-            counters={counters} // Передаем counters в IngredientsCategory
+            counters={counters}
+            data-cy='ingredients-mains' // Добавлен атрибут для начинок
           />
           <IngredientsCategory
             title='Соусы'
             titleRef={titleSaucesRef}
             ingredients={sauces}
             ref={saucesRef}
-            counters={counters} // Передаем counters в IngredientsCategory
+            counters={counters}
+            data-cy='ingredients-sauces' // Добавлен атрибут для соусов
           />
         </div>
       </section>

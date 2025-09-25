@@ -9,7 +9,7 @@ type OrdersHistoryState = {
   hasLoadedOnce: boolean;
 };
 
-const initialState: OrdersHistoryState = {
+export const initialState: OrdersHistoryState = {
   orders: [],
   isLoading: false,
   error: null,
